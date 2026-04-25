@@ -29,7 +29,7 @@ var allowedJobStatuses = []JobStatus{
 type Job struct {
 	ID               string    `json:"job_id" valid:"uuid" gorm:"type:uuid;primary_key"`
 	OutputBucketPath string    `json:"output_bucket_path" valid:"notnull"`
-	Status           string    `json:"status" valid:"notnull"`
+	Status           JobStatus `json:"status" valid:"notnull"`
 	VideoID          string    `json:"-" valid:"-" gorm:"column:video_id;type:uuid;notnull"`
 	Video            *Video    `json:"video" valid:"-"`
 	Error            string    `json:"error" valid:"-"`
@@ -41,9 +41,9 @@ func init() {
 	govalidator.SetFieldsRequiredByDefault(true)
 }
 
-func isValidJobStatus(status string) bool {
+func isValidJobStatus(status JobStatus) bool {
 	for _, s := range allowedJobStatuses {
-		if string(s) == status {
+		if s == status {
 			return true
 		}
 	}
@@ -53,7 +53,7 @@ func isValidJobStatus(status string) bool {
 func NewJob(output string, status JobStatus, video *Video) (*Job, error) {
 	job := Job{
 		OutputBucketPath: output,
-		Status:           string(status),
+		Status:           status,
 		Video:            video,
 		// VideoID:          video.ID,
 	}
@@ -69,7 +69,7 @@ func (job *Job) prepare() {
 	job.ID = uuid.NewV4().String()
 	job.CreatedAt = time.Now()
 	job.UpdatedAt = time.Now()
-	job.Status = string(JobStatusPending)
+	job.Status = JobStatusPending
 }
 
 func (job *Job) Validate() error {
@@ -79,7 +79,7 @@ func (job *Job) Validate() error {
 	}
 
 	if !isValidJobStatus(job.Status) {
-		return errors.New("invalid job status: " + job.Status)
+		return errors.New("invalid job status: " + string(job.Status))
 	}
 
 	return nil

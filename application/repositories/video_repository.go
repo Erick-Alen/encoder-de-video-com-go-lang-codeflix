@@ -37,7 +37,9 @@ func (repo VideoRepositoryDb) Insert(video *domain.Video) (*domain.Video, error)
 
 func (repo VideoRepositoryDb) Find(id string) (*domain.Video, error) {
 	var video domain.Video
-	repo.Db.First(&video, "id = ?", id) // fill the video found to the video variable for reference
+	repo.Db.Preload("Jobs").First(&video, "id = ?", id) // fill the video found to the video variable for reference
+	// preload fill the jobs field in the video struct in the first query for
+	// avoid making another query 
 	if video.ID == "" {
 		return nil, fmt.Errorf("Video does not exist")
 	}
