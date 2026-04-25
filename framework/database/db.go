@@ -42,7 +42,9 @@ func (d *Database) Connect() (*gorm.DB, error) {
 
 	if d.AutoMigrate {
 		d.Db.AutoMigrate(&domain.Video{}, &domain.Job{})
-		d.Db.Model(&domain.Job{}).AddForeignKey("video_id", "videos(id)", "cascade", "cascade")
+		if d.Env != "test" {
+			d.Db.Model(&domain.Job{}).AddForeignKey("video_id", "videos(id)", "cascade", "cascade")
+		}
 	}
 
 	return d.Db, nil
@@ -50,7 +52,7 @@ func (d *Database) Connect() (*gorm.DB, error) {
 
 func NewDbTest() *gorm.DB {
 	dbInstance := NewDb()
-	dbInstance.Env = "Test"
+	dbInstance.Env = "test"
 	dbInstance.DsnTest = ":memory:"
 	dbInstance.DbTypeTest = "sqlite3"
 	dbInstance.Debug = true
